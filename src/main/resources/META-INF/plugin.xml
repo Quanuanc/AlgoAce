@@ -1,0 +1,16 @@
+<idea-plugin>
+    <id>dev.cheng.algoace</id>
+    <name>AlgoAce</name>
+    <vendor email="quanuanc@gmail.com">Cheng</vendor>
+
+    <description><![CDATA[
+        <h1>AlgoAce: Elevate Your Coding Skills</h1>
+        AlgoAce is a powerful IntelliJ plugin designed to seamlessly integrate LeetCode problem-solving into your development environment. With AlgoAce, you can browse, solve, and submit LeetCode problems directly from IntelliJ, enhancing your algorithmic skills without leaving your favorite IDE.
+  ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+    </extensions>
+</idea-plugin>
