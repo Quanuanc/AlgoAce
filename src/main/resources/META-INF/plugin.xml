@@ -11,6 +11,15 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-
+        <notificationGroup displayType="BALLOON" id="AlgoAce"/>
     </extensions>
+
+    <actions>
+        <action id="LeetCodePick" class="dev.cheng.algoace.LeetCodePickAction" text="AlgoAce: LeetCode Pick"
+                description="Pick a LeetCode question base on the input number"/>
+        <action id="LeetCodeRun" class="dev.cheng.algoace.LeetCodeRunAction" text="AlgoAce: LeetCode Run"
+                description="Run LeetCode test case on current file"/>
+        <action id="LeetCodeSubmit" class="dev.cheng.algoace.LeetCodeSubmitAction" text="AlgoAce: LeetCode Submit"
+                description="Submit current file to LeetCode"/>
+    </actions>
 </idea-plugin>
