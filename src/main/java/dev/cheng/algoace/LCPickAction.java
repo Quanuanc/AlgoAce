@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import dev.cheng.algoace.service.LeetCodeService;
 import dev.cheng.algoace.utils.CommonInfo;
+import dev.cheng.algoace.utils.FileManager;
 import dev.cheng.algoace.utils.Notifier;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,26 +14,37 @@ public class LCPickAction extends DumbAwareAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
+        if (project == null) return;
+
         String inputId = Messages.showInputDialog(project, "Input a question number", CommonInfo.LC_PICK_TITLE, Messages.getQuestionIcon());
         if (inputId == null) {
             Notifier.warn(CommonInfo.LC_PICK_TITLE, "Input is null", project);
             return;
         }
 
-        try {
-            int questionId = Integer.parseInt(inputId);
-            LeetCodeService.fetchQuestionById(questionId).thenAccept(question -> {
-                if (question != null) {
-                    Notifier.info(CommonInfo.LC_PICK_TITLE, String.format("Question %s: %s (%s)", question.questionFrontendId(), question.title(), question.difficulty()), project);
-                } else {
-                    Notifier.warn(CommonInfo.LC_PICK_TITLE, "Question not found", project);
-                }
-            }).exceptionally(throwable -> {
-                Notifier.error(CommonInfo.LC_PICK_TITLE, "Error: " + throwable.getMessage(), project);
-                return null;
-            });
-        } catch (NumberFormatException ex) {
-            Notifier.error(CommonInfo.LC_PICK_TITLE, "Invalid question number", project);
+        // check Solution.java exist or not in current project's leetcode path
+        if (FileManager.checkSolutionExist(project, inputId)) {
+            Notifier.warn(CommonInfo.LC_PICK_TITLE, "q" + inputId + " already exists", project);
+            return;
         }
+
+        int questionId = Integer.parseInt(inputId);
+        LeetCodeService.fetchQuestionById(questionId).thenAccept(question -> {
+            if (question != null) {
+                try {
+                    FileManager.createSolutionFile(project, question);
+                    Notifier.info(CommonInfo.LC_PICK_TITLE, String.format("Question %s: %s (%s)", question.questionFrontendId(), question.title(), question.difficulty()), project);
+                } catch (Exception ex) {
+                    Notifier.error(CommonInfo.LC_PICK_TITLE, ex.getMessage(), project);
+                }
+            } else {
+                Notifier.warn(CommonInfo.LC_PICK_TITLE, "Question not found", project);
+            }
+        }).exceptionally(throwable -> {
+            Notifier.error(CommonInfo.LC_PICK_TITLE, "Error: " + throwable.getMessage(), project);
+            return null;
+        });
+
+
     }
 }
