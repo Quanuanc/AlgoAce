@@ -15,11 +15,11 @@
     </extensions>
 
     <actions>
-        <action id="LeetCodePick" class="dev.cheng.algoace.LeetCodePickAction" text="AlgoAce: LeetCode Pick"
+        <action id="LeetCodePick" class="dev.cheng.algoace.LCPickAction" text="AlgoAce: LeetCode Pick"
                 description="Pick a LeetCode question base on the input number"/>
-        <action id="LeetCodeRun" class="dev.cheng.algoace.LeetCodeRunAction" text="AlgoAce: LeetCode Run"
+        <action id="LeetCodeRun" class="dev.cheng.algoace.LCRunAction" text="AlgoAce: LeetCode Run"
                 description="Run LeetCode test case on current file"/>
-        <action id="LeetCodeSubmit" class="dev.cheng.algoace.LeetCodeSubmitAction" text="AlgoAce: LeetCode Submit"
+        <action id="LeetCodeSubmit" class="dev.cheng.algoace.LCSubmitAction" text="AlgoAce: LeetCode Submit"
                 description="Submit current file to LeetCode"/>
     </actions>
 </idea-plugin>
