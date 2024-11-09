@@ -7,6 +7,8 @@ public record Question(String questionId,
                        String title,
                        String titleSlug,
                        String difficulty,
-                       List<QuestionCodeSnippet> codeSnippets
+                       List<QuestionCodeSnippet> codeSnippets,
+                       String exampleTestcases,
+                       String sampleTestCase
 ) {
 }
