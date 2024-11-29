@@ -8,9 +8,12 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import dev.cheng.algoace.model.Question;
 import dev.cheng.algoace.model.QuestionCodeSnippet;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 public class FileManager {
     public static boolean checkSolutionExist(Project project, String questionId) {
@@ -41,12 +44,10 @@ public class FileManager {
             // 构建目录路径
             String basePath = project.getBasePath();
             String questionDir = basePath + "/" + CommonInfo.SOURCE_BASE_URL + "/" + CommonInfo.USER_SOURCE_URL + "/q" + question.questionFrontendId();
+            Path directoryPath = Paths.get(questionDir);
 
             // 创建目录
-            File directory = new File(questionDir);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+            Files.createDirectories(directoryPath);
 
             // 获取Java代码片段
             String javaCode = question.codeSnippets().stream().filter(snippet -> "java".equals(snippet.langSlug())).findFirst().map(QuestionCodeSnippet::code).orElseThrow(() -> new RuntimeException("No Java code snippet found"));
@@ -56,14 +57,14 @@ public class FileManager {
             String fileContent = CommonInfo.USER_CODE_TEMPLATE.replace("{package}", packageName).replace("{questionFrontendId}", question.questionFrontendId()).replace("{questionTitle}", question.title()).replace("{questionCode}", javaCode);
 
             // 创建并写入文件
-            File solutionFile = new File(directory, "Solution.java");
-            Files.writeString(solutionFile.toPath(), fileContent);
+            Path solutionPath = directoryPath.resolve("Solution.java");
+            Files.writeString(solutionPath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
             // 刷新 IDE 的虚拟文件系统以显示新文件
             VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
 
             // 获取虚拟文件并打开
-            String filePath = "file://" + solutionFile.getAbsolutePath();
+            String filePath = "file://" + solutionPath.toAbsolutePath();
             VirtualFile virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(filePath);
             if (virtualFile != null) {
                 ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(project).openFile(virtualFile, true));
