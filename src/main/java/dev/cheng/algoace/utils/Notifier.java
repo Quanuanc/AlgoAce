@@ -6,7 +6,8 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 
 public class Notifier {
-    private static final NotificationGroup algoNotificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("AlgoAce");
+    private static final NotificationGroup algoNotificationGroup =
+            NotificationGroupManager.getInstance().getNotificationGroup("AlgoAce");
 
     public static void info(String title, String message, Project project) {
         algoNotificationGroup.createNotification(title, message, NotificationType.INFORMATION)

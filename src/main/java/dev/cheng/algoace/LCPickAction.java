@@ -16,7 +16,8 @@ public class LCPickAction extends DumbAwareAction {
         Project project = e.getProject();
         if (project == null) return;
 
-        String inputId = Messages.showInputDialog(project, "Input a question number", CommonInfo.LC_PICK_TITLE, Messages.getQuestionIcon());
+        String inputId = Messages.showInputDialog(project, "Input a question number", CommonInfo.LC_PICK_TITLE,
+                Messages.getQuestionIcon());
         if (inputId == null) {
             Notifier.warn(CommonInfo.LC_PICK_TITLE, "Input is null", project);
             return;
@@ -33,7 +34,8 @@ public class LCPickAction extends DumbAwareAction {
             if (question != null) {
                 try {
                     FileManager.createSolutionFile(project, question);
-                    Notifier.info(CommonInfo.LC_PICK_TITLE, String.format("Question %s: %s (%s)", question.questionFrontendId(), question.title(), question.difficulty()), project);
+                    Notifier.info(CommonInfo.LC_PICK_TITLE, String.format("Question %s: %s (%s)",
+                            question.questionFrontendId(), question.title(), question.difficulty()), project);
                 } catch (Exception ex) {
                     Notifier.error(CommonInfo.LC_PICK_TITLE, ex.getMessage(), project);
                 }
