@@ -31,7 +31,4 @@ public class CommonInfo {
               "variables": { "categorySlug": "", "limit": 1, "skip": %d, "filters": {} }
             }
             """;
-
-    public static final String LC_COOKIE = "";
-    public static final String LC_X_CSRFTOKEN = "";
 }

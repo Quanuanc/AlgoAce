@@ -12,6 +12,11 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup displayType="BALLOON" id="AlgoAce"/>
+        <projectConfigurable 
+            parentId="tools" 
+            instance="dev.cheng.algoace.settings.SettingsConfigurable"
+            id="dev.cheng.algoace.settings.SettingsConfigurable"
+            displayName="AlgoAce"/>
     </extensions>
 
     <actions>

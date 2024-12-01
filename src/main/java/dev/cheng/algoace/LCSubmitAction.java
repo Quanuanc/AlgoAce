@@ -36,10 +36,10 @@ public class LCSubmitAction extends DumbAwareAction {
                 try {
                     indicator.setIndeterminate(true);
 
-                    Integer submissionId = LeetCodeService.submitSolution(solution).get();
+                    Integer submissionId = LeetCodeService.getInstance().submitSolution(solution).get();
                     solution.setSubmission(submissionId);
 
-                    CheckResult result = LeetCodeService.checkSubmission(solution).get();
+                    CheckResult result = LeetCodeService.getInstance().checkSubmission(solution).get();
 
                     String title = String.format("Status: %s", result.status_msg());
                     if (result.status_code() == 10) {

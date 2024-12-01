@@ -30,7 +30,7 @@ public class LCPickAction extends DumbAwareAction {
         }
 
         int questionId = Integer.parseInt(inputId);
-        LeetCodeService.fetchQuestionById(questionId).thenAccept(question -> {
+        LeetCodeService.getInstance().fetchQuestionById(questionId).thenAccept(question -> {
             if (question != null) {
                 try {
                     FileManager.createSolutionFile(project, question);

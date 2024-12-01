@@ -1,19 +1,36 @@
 package dev.cheng.algoace.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.io.HttpRequests;
 import dev.cheng.algoace.exception.AlgoAceException;
 import dev.cheng.algoace.model.*;
+import dev.cheng.algoace.settings.UserConfig;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 public class LeetCodeService {
+    private static volatile LeetCodeService instance;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final UserConfig userConfig = ApplicationManager.getApplication().getService(UserConfig.class);
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private LeetCodeService() {
+    }
 
-    public static CompletableFuture<Question> fetchQuestionById(int questionId) {
+    public static LeetCodeService getInstance() {
+        if (instance == null) {
+            synchronized (LeetCodeService.class) {
+                if (instance == null) {
+                    instance = new LeetCodeService();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public CompletableFuture<Question> fetchQuestionById(int questionId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String query = String.format(CommonInfo.LC_QUESTION_LIST_QUERY, questionId - 1);
@@ -31,7 +48,7 @@ public class LeetCodeService {
         });
     }
 
-    public static CompletableFuture<Integer> submitSolution(Solution solution) {
+    public CompletableFuture<Integer> submitSolution(Solution solution) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // 构建提交请求的JSON数据
@@ -48,8 +65,8 @@ public class LeetCodeService {
                             request.setRequestProperty("Origin", CommonInfo.LC_BASE);
                             request.setRequestProperty("Referer", solution.referer());
                             // 这里需要添加用户的认证信息
-                            request.setRequestProperty("Cookie", CommonInfo.LC_COOKIE);
-                            request.setRequestProperty("x-csrftoken", CommonInfo.LC_X_CSRFTOKEN);
+                            request.setRequestProperty("Cookie", userConfig.getLeetCodeCookie());
+                            request.setRequestProperty("x-csrftoken", userConfig.getLeetCodeCsrfToken());
                         }).connect(request -> {
                             request.write(jsonBody.getBytes());
                             return request.readString();
@@ -63,7 +80,7 @@ public class LeetCodeService {
         });
     }
 
-    public static CompletableFuture<CheckResult> checkSubmission(Solution solution) {
+    public CompletableFuture<CheckResult> checkSubmission(Solution solution) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 CheckResult result = null;
@@ -74,8 +91,8 @@ public class LeetCodeService {
                     String response = HttpRequests.request(solution.checkUrl())
                             .tuner(request -> {
                                 request.setRequestProperty("Content-Type", HttpRequests.JSON_CONTENT_TYPE);
-                                request.setRequestProperty("Cookie", CommonInfo.LC_COOKIE);
-                                request.setRequestProperty("x-csrftoken", CommonInfo.LC_X_CSRFTOKEN);
+                                request.setRequestProperty("Cookie", userConfig.getLeetCodeCookie());
+                                request.setRequestProperty("x-csrftoken", userConfig.getLeetCodeCsrfToken());
                                 request.setRequestProperty("Referer", solution.referer());
                             })
                             .connect(request -> {
