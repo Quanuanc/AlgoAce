@@ -3,7 +3,7 @@ package dev.cheng.algoace;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import dev.cheng.algoace.utils.CommonInfo;
+import dev.cheng.algoace.model.CommonInfo;
 import dev.cheng.algoace.utils.Notifier;
 import org.jetbrains.annotations.NotNull;
 

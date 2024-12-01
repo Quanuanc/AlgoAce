@@ -9,6 +9,7 @@ public record Question(String questionId,
                        String difficulty,
                        List<QuestionCodeSnippet> codeSnippets,
                        String exampleTestcases,
-                       String sampleTestCase
+                       String sampleTestCase,
+                       List<TopicTag> topicTags
 ) {
 }

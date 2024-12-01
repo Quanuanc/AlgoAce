@@ -2,12 +2,10 @@ package dev.cheng.algoace.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.util.io.HttpRequests;
-import dev.cheng.algoace.model.Question;
-import dev.cheng.algoace.model.QuestionListRoot;
-import dev.cheng.algoace.model.Solution;
-import dev.cheng.algoace.model.Submission;
-import dev.cheng.algoace.utils.CommonInfo;
+import dev.cheng.algoace.exception.AlgoAceException;
+import dev.cheng.algoace.model.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
@@ -19,15 +17,16 @@ public class LeetCodeService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String query = String.format(CommonInfo.LC_QUESTION_LIST_QUERY, questionId - 1);
-                String response = HttpRequests.post(CommonInfo.LC_API, "application/json").connect(request -> {
-                    request.write(query.getBytes());
-                    return request.readString();
-                });
+                String response =
+                        HttpRequests.post(CommonInfo.LC_API, HttpRequests.JSON_CONTENT_TYPE).connect(request -> {
+                            request.write(query.getBytes());
+                            return request.readString();
+                        });
 
                 QuestionListRoot root = mapper.readValue(response, QuestionListRoot.class);
                 return root.data().questionList().data().get(0);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to fetch question: " + e.getMessage());
+                throw new AlgoAceException("Failed to fetch question: " + e.getMessage());
             }
         });
     }
@@ -43,26 +42,77 @@ public class LeetCodeService {
 
                 String jsonBody = mapper.writeValueAsString(submitData);
 
-                String titleSlug = solution.titleSlug();
-                String submitUrl = CommonInfo.LC_API_PROBLEM + titleSlug + "/submit/";
-                String referer = CommonInfo.LC_API_PROBLEM + titleSlug;
-
                 // 发送POST请求
-                String response = HttpRequests.post(submitUrl, HttpRequests.JSON_CONTENT_TYPE).tuner(request -> {
-                    request.setRequestProperty("Origin", CommonInfo.LC_BASE);
-                    request.setRequestProperty("Referer", referer);
-                    // 这里需要添加用户的认证信息
-                    request.setRequestProperty("Cookie", CommonInfo.LC_COOKIE);
-                    request.setRequestProperty("x-csrftoken", CommonInfo.LC_X_CSRFTOKEN);
-                }).connect(request -> {
-                    request.write(jsonBody.getBytes());
-                    return request.readString();
-                });
+                String response =
+                        HttpRequests.post(solution.submitUrl(), HttpRequests.JSON_CONTENT_TYPE).tuner(request -> {
+                            request.setRequestProperty("Origin", CommonInfo.LC_BASE);
+                            request.setRequestProperty("Referer", solution.referer());
+                            // 这里需要添加用户的认证信息
+                            request.setRequestProperty("Cookie", CommonInfo.LC_COOKIE);
+                            request.setRequestProperty("x-csrftoken", CommonInfo.LC_X_CSRFTOKEN);
+                        }).connect(request -> {
+                            request.write(jsonBody.getBytes());
+                            return request.readString();
+                        });
 
-                Submission submission = mapper.readValue(response, Submission.class);
-                return submission.submission_id();
+                SubmitResult submitResult = mapper.readValue(response, SubmitResult.class);
+                return submitResult.submission_id();
             } catch (Exception e) {
-                throw new RuntimeException("Failed to submit solution: " + e.getMessage());
+                throw new AlgoAceException("Failed to submit solution: " + e.getMessage());
+            }
+        });
+    }
+
+    public static CompletableFuture<CheckResult> checkSubmission(Solution solution) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                CheckResult result = null;
+                int maxAttempts = 5;
+                int attempt = 0;
+
+                while (attempt < maxAttempts) {
+                    String response = HttpRequests.request(solution.checkUrl())
+                            .tuner(request -> {
+                                request.setRequestProperty("Content-Type", HttpRequests.JSON_CONTENT_TYPE);
+                                request.setRequestProperty("Cookie", CommonInfo.LC_COOKIE);
+                                request.setRequestProperty("x-csrftoken", CommonInfo.LC_X_CSRFTOKEN);
+                                request.setRequestProperty("Referer", solution.referer());
+                            })
+                            .connect(request -> {
+                                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                                        new java.io.InputStreamReader(request.getInputStream(),
+                                                StandardCharsets.UTF_8))) {
+                                    StringBuilder responseBuilder = new StringBuilder();
+                                    String line;
+                                    while ((line = reader.readLine()) != null) {
+                                        responseBuilder.append(line);
+                                    }
+                                    return responseBuilder.toString();
+                                }
+                            });
+
+                    result = mapper.readValue(response, CheckResult.class);
+
+                    if ("SUCCESS".equals(result.state())) {
+                        break;
+                    }
+
+                    attempt++;
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new AlgoAceException("CheckSubmission interrupted: " + e.getMessage());
+                    }
+                }
+
+                if ("PENDING".equals(result.state())) {
+                    throw new AlgoAceException("CheckSubmission still pending");
+                }
+
+                return result;
+            } catch (Exception e) {
+                throw new AlgoAceException("Check submission failed: " + e.getMessage());
             }
         });
     }

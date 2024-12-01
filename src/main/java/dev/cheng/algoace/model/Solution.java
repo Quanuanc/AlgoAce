@@ -1,4 +1,103 @@
 package dev.cheng.algoace.model;
 
-public record Solution(String questionFrontendId, String titleSlug, String typedCode) {
+public class Solution {
+    private final String questionFrontendId;
+    private final String titleSlug;
+    private final String typedCode;
+    private final String referer;
+    private final String submitUrl;
+    private Integer submissionId;
+    private String checkUrl;
+
+    private Solution(SolutionBuilder builder) {
+        this.questionFrontendId = builder.questionFrontendId;
+        this.titleSlug = builder.titleSlug;
+        this.typedCode = builder.typedCode;
+        this.referer = builder.referer;
+        this.submitUrl = builder.submitUrl;
+        this.submissionId = builder.submissionId;
+    }
+
+    public static SolutionBuilder builder() {
+        return new SolutionBuilder();
+    }
+
+    public void setSubmission(Integer submissionId) {
+        this.submissionId = submissionId;
+        this.checkUrl = CommonInfo.LC_BASE + "submissions/detail/" + submissionId + "/check/";
+    }
+
+    public String checkUrl() {
+        return checkUrl;
+    }
+
+    public String questionFrontendId() {
+        return questionFrontendId;
+    }
+
+    public String titleSlug() {
+        return titleSlug;
+    }
+
+    public String typedCode() {
+        return typedCode;
+    }
+
+    public String referer() {
+        return referer;
+    }
+
+    public String submitUrl() {
+        return submitUrl;
+    }
+
+    public Integer submissionId() {
+        return submissionId;
+    }
+
+    public static class SolutionBuilder {
+        private String questionFrontendId;
+        private String titleSlug;
+        private String typedCode;
+        private String referer;
+        private String submitUrl;
+        private Integer submissionId;
+
+        private SolutionBuilder() {
+        }
+
+        public SolutionBuilder questionFrontendId(String questionFrontendId) {
+            this.questionFrontendId = questionFrontendId;
+            return this;
+        }
+
+        public SolutionBuilder titleSlug(String titleSlug) {
+            this.titleSlug = titleSlug;
+            return this;
+        }
+
+        public SolutionBuilder typedCode(String typedCode) {
+            this.typedCode = typedCode;
+            return this;
+        }
+
+        public SolutionBuilder referer(String referer) {
+            this.referer = referer;
+            return this;
+        }
+
+        public SolutionBuilder submitUrl(String submitUrl) {
+            this.submitUrl = submitUrl;
+            return this;
+        }
+
+        public SolutionBuilder submissionId(Integer submissionId) {
+            this.submissionId = submissionId;
+            return this;
+        }
+
+        public Solution build() {
+            return new Solution(this);
+        }
+    }
 }
