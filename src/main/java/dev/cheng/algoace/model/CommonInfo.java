@@ -16,7 +16,7 @@ public class CommonInfo {
     public static final String CODE_END = "// ------ AlgoAce End -------";
     public static final String USER_CODE_TEMPLATE = """
             package {package};
-            // {{questionFrontendId}} {{questionTitleSlug}}
+            // {{questionId}} {{questionTitleSlug}}
             
             /**
              * @link <a href="{questionUrl}">{questionTitle}</a>

@@ -1,7 +1,7 @@
 package dev.cheng.algoace.model;
 
 public class Solution {
-    private final String questionFrontendId;
+    private final String questionId;
     private final String titleSlug;
     private final String typedCode;
     private final String referer;
@@ -10,7 +10,7 @@ public class Solution {
     private String checkUrl;
 
     private Solution(SolutionBuilder builder) {
-        this.questionFrontendId = builder.questionFrontendId;
+        this.questionId = builder.questionId;
         this.titleSlug = builder.titleSlug;
         this.typedCode = builder.typedCode;
         this.referer = builder.referer;
@@ -31,8 +31,8 @@ public class Solution {
         return checkUrl;
     }
 
-    public String questionFrontendId() {
-        return questionFrontendId;
+    public String questionId() {
+        return questionId;
     }
 
     public String titleSlug() {
@@ -56,7 +56,7 @@ public class Solution {
     }
 
     public static class SolutionBuilder {
-        private String questionFrontendId;
+        private String questionId;
         private String titleSlug;
         private String typedCode;
         private String referer;
@@ -66,8 +66,8 @@ public class Solution {
         private SolutionBuilder() {
         }
 
-        public SolutionBuilder questionFrontendId(String questionFrontendId) {
-            this.questionFrontendId = questionFrontendId;
+        public SolutionBuilder questionId(String questionFrontendId) {
+            this.questionId = questionFrontendId;
             return this;
         }
 
@@ -99,5 +99,18 @@ public class Solution {
         public Solution build() {
             return new Solution(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Solution{" +
+                "questionId='" + questionId + '\'' +
+                ", titleSlug='" + titleSlug + '\'' +
+                ", typedCode='" + typedCode + '\'' +
+                ", referer='" + referer + '\'' +
+                ", submitUrl='" + submitUrl + '\'' +
+                ", submissionId=" + submissionId +
+                ", checkUrl='" + checkUrl + '\'' +
+                '}';
     }
 }

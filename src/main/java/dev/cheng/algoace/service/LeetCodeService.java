@@ -6,12 +6,15 @@ import com.intellij.util.io.HttpRequests;
 import dev.cheng.algoace.exception.AlgoAceException;
 import dev.cheng.algoace.model.*;
 import dev.cheng.algoace.settings.UserConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 public class LeetCodeService {
+    private static final Logger log = LoggerFactory.getLogger(LeetCodeService.class);
     private static volatile LeetCodeService instance;
     private final ObjectMapper mapper = new ObjectMapper();
     private final UserConfig userConfig = ApplicationManager.getApplication().getService(UserConfig.class);
@@ -49,15 +52,17 @@ public class LeetCodeService {
     }
 
     public CompletableFuture<Integer> submitSolution(Solution solution) {
+        log.debug("submitSolution");
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // 构建提交请求的JSON数据
                 HashMap<String, String> submitData = new HashMap<>();
                 submitData.put("lang", "java");
-                submitData.put("question_id", solution.questionFrontendId());
+                submitData.put("question_id", solution.questionId());
                 submitData.put("typed_code", solution.typedCode());
 
                 String jsonBody = mapper.writeValueAsString(submitData);
+                log.debug("submitSolution, jsonBody -> {}", jsonBody);
 
                 // 发送POST请求
                 String response =
@@ -71,6 +76,7 @@ public class LeetCodeService {
                             request.write(jsonBody.getBytes());
                             return request.readString();
                         });
+                log.debug("submitSolution, response -> {}", response);
 
                 SubmitResult submitResult = mapper.readValue(response, SubmitResult.class);
                 return submitResult.submission_id();
@@ -81,6 +87,7 @@ public class LeetCodeService {
     }
 
     public CompletableFuture<CheckResult> checkSubmission(Solution solution) {
+        log.debug("checkSubmission, solution -> {}", solution);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 CheckResult result = null;
@@ -107,6 +114,8 @@ public class LeetCodeService {
                                     return responseBuilder.toString();
                                 }
                             });
+
+                    log.debug("checkSubmission, response -> {}", response);
 
                     result = mapper.readValue(response, CheckResult.class);
 

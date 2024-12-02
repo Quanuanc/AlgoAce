@@ -85,7 +85,7 @@ public class FileManager {
         String packageName = CommonInfo.USER_SOURCE_PACKAGE + ".q" + question.questionFrontendId();
         return CommonInfo.USER_CODE_TEMPLATE
                 .replace("{package}", packageName)
-                .replace("{questionFrontendId}", question.questionFrontendId())
+                .replace("{questionId}", question.questionId())
                 .replace("{questionTitleSlug}", question.titleSlug())
                 .replace("{questionTitle}", question.title())
                 .replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug())
@@ -100,12 +100,12 @@ public class FileManager {
                 .findFirst()
                 .orElseThrow();
         Matcher idSlugMatcher = idSlugPattern.matcher(secondLine);
-        String id, titleSlug, code;
+        String questionId, titleSlug, code;
         if (idSlugMatcher.find()) {
-            id = idSlugMatcher.group(1);
+            questionId = idSlugMatcher.group(1);
             titleSlug = idSlugMatcher.group(2);
         } else {
-            throw new AlgoAceException("No id and title slug found");
+            throw new AlgoAceException("No questionId and title slug found");
         }
         Matcher codeMatcher = codePattern.matcher(content);
         if (codeMatcher.find()) {
@@ -116,7 +116,7 @@ public class FileManager {
         String referer = CommonInfo.LC_API_PROBLEM + titleSlug;
         String submitUrl = CommonInfo.LC_API_PROBLEM + titleSlug + "/submit/";
         return Solution.builder()
-                .questionFrontendId(id)
+                .questionId(questionId)
                 .titleSlug(titleSlug)
                 .typedCode(code)
                 .referer(referer)
