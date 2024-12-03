@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import dev.cheng.algoace.model.CommonInfo;
 import dev.cheng.algoace.service.LeetCodeService;
 import dev.cheng.algoace.utils.FileManager;
@@ -32,7 +33,9 @@ public class LCPickAction extends DumbAwareAction {
         }
 
         // check Solution.java exist or not in current project's leetcode path
-        if (FileManager.checkSolutionExist(project, inputId)) {
+        VirtualFile virtualFile = FileManager.checkSolutionExist(project, inputId);
+        if (virtualFile != null) {
+            FileManager.openSolution(project, virtualFile);
             Notifier.info(CommonInfo.LC_PICK_TITLE, "q" + inputId + " already exists, opening for you", project);
             return;
         }
@@ -41,7 +44,8 @@ public class LCPickAction extends DumbAwareAction {
         LeetCodeService.getInstance().fetchQuestionById(questionId).thenAccept(question -> {
             if (question != null) {
                 try {
-                    FileManager.createSolutionFile(project, question);
+                    VirtualFile file = FileManager.createSolutionFile(project, question);
+                    FileManager.openSolution(project, file);
                     Notifier.info(CommonInfo.LC_PICK_TITLE, String.format("Question %s: %s (%s)",
                             question.questionFrontendId(), question.title(), question.difficulty()), project);
                 } catch (Exception ex) {

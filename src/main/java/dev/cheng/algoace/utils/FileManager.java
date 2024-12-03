@@ -26,30 +26,31 @@ public class FileManager {
     private static final Pattern codePattern =
             Pattern.compile(CommonInfo.CODE_BEGIN + "\\s*(.*?)\\s*" + CommonInfo.CODE_END, Pattern.DOTALL);
 
-    public static boolean checkSolutionExist(Project project, String questionId) {
+    public static void openSolution(Project project, VirtualFile virtualFile) {
+        if (virtualFile == null) return;
+
+        ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(project).openFile(virtualFile, true));
+    }
+
+    public static VirtualFile checkSolutionExist(Project project, String questionId) {
         String basePath = project.getBasePath();
-        if (basePath == null) return false;
+        if (basePath == null) return null;
         String directory =
                 basePath + "/" + CommonInfo.SOURCE_BASE_URL + "/" + CommonInfo.USER_SOURCE_URL + "/" + "q" + questionId;
         return checkFileExists(project, directory, "Solution.java");
     }
 
-    public static boolean checkFileExists(Project project, String directory, String fileName) {
-        if (project == null || project.isDisposed()) return false;
+    public static VirtualFile checkFileExists(Project project, String directory, String fileName) {
+        if (project == null || project.isDisposed()) return null;
 
         VirtualFileManager fileManager = VirtualFileManager.getInstance();
         String filePath = "file://" + directory + "/" + fileName;
-        VirtualFile virtualFile = fileManager.findFileByUrl(filePath);
 
-        boolean existed = virtualFile != null && !virtualFile.isDirectory() && virtualFile.exists();
-        if (existed) {
-            ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(project).openFile(virtualFile, true));
-        }
-        return existed;
+        return fileManager.findFileByUrl(filePath);
     }
 
-    public static void createSolutionFile(Project project, Question question) {
-        if (project == null || project.isDisposed()) return;
+    public static VirtualFile createSolutionFile(Project project, Question question) {
+        if (project == null || project.isDisposed()) return null;
 
         try {
             String basePath = project.getBasePath();
@@ -58,7 +59,7 @@ public class FileManager {
             Path directoryPath = Paths.get(questionDir);
 
             Files.createDirectories(directoryPath);
-            String fileContent = fileContent(question);
+            String fileContent = constructContent(question);
 
             Path solutionPath = directoryPath.resolve("Solution.java");
             Files.writeString(solutionPath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE,
@@ -67,38 +68,23 @@ public class FileManager {
             VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
 
             String filePath = "file://" + solutionPath.toAbsolutePath();
-            VirtualFile virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(filePath);
-            if (virtualFile != null) {
-                ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(project).openFile(virtualFile, true));
-            }
+            return VirtualFileManager.getInstance().refreshAndFindFileByUrl(filePath);
         } catch (IOException e) {
             throw new AlgoAceException("Failed to create Solution.java: " + e.getMessage());
         }
     }
 
-    private static String fileContent(Question question) {
+    private static String constructContent(Question question) {
         String javaCode =
-                question.codeSnippets().stream().filter(snippet -> "java".equals(snippet.langSlug()))
-                        .findFirst()
-                        .map(QuestionCodeSnippet::code)
-                        .orElseThrow(() -> new AlgoAceException("No Java code snippet found"));
+                question.codeSnippets().stream().filter(snippet -> "java".equals(snippet.langSlug())).findFirst().map(QuestionCodeSnippet::code).orElseThrow(() -> new AlgoAceException("No Java code snippet found"));
         String packageName = CommonInfo.USER_SOURCE_PACKAGE + ".q" + question.questionFrontendId();
-        return CommonInfo.USER_CODE_TEMPLATE
-                .replace("{package}", packageName)
-                .replace("{questionId}", question.questionId())
-                .replace("{questionTitleSlug}", question.titleSlug())
-                .replace("{questionTitle}", question.title())
-                .replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug())
-                .replace("{codeBegin}", CommonInfo.CODE_BEGIN)
-                .replace("{codeEnd}", CommonInfo.CODE_END)
-                .replace("{questionCode}", javaCode);
+        return CommonInfo.USER_CODE_TEMPLATE.replace("{package}", packageName).replace("{questionId}",
+                question.questionId()).replace("{questionTitleSlug}", question.titleSlug()).replace("{questionTitle}"
+                , question.title()).replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug()).replace("{codeBegin}", CommonInfo.CODE_BEGIN).replace("{codeEnd}", CommonInfo.CODE_END).replace("{questionCode}", javaCode);
     }
 
     public static Solution getSolution(String content) {
-        String secondLine = content.lines()
-                .skip(1)
-                .findFirst()
-                .orElseThrow();
+        String secondLine = content.lines().skip(1).findFirst().orElseThrow();
         Matcher idSlugMatcher = idSlugPattern.matcher(secondLine);
         String questionId, titleSlug, code;
         if (idSlugMatcher.find()) {
@@ -115,12 +101,6 @@ public class FileManager {
         }
         String referer = CommonInfo.LC_API_PROBLEM + titleSlug;
         String submitUrl = CommonInfo.LC_API_PROBLEM + titleSlug + "/submit/";
-        return Solution.builder()
-                .questionId(questionId)
-                .titleSlug(titleSlug)
-                .typedCode(code)
-                .referer(referer)
-                .submitUrl(submitUrl)
-                .build();
+        return Solution.builder().questionId(questionId).titleSlug(titleSlug).typedCode(code).referer(referer).submitUrl(submitUrl).build();
     }
 }
