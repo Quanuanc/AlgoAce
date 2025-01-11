@@ -12,8 +12,9 @@ public class CommonInfo {
     public static final String SOURCE_BASE_URL = "src/main/java";
     public static final String USER_SOURCE_URL = "dev/cheng/leetcode";
     public static final String USER_SOURCE_PACKAGE = USER_SOURCE_URL.replace('/', '.');
-    public static final String CODE_BEGIN = "// ------ AlgoAce Begin -----";
-    public static final String CODE_END = "// ------ AlgoAce End -------";
+    public static final String CODE_BEGIN = "// Begin";
+    public static final String CODE_END = "// End";
+    public static final String SOLUTION_CLASS = "Solution";
     public static final String USER_CODE_TEMPLATE = """
             package {package};
             // {{questionId}} {{questionTitleSlug}}

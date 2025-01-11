@@ -55,6 +55,19 @@ public class Solution {
         return submissionId;
     }
 
+    @Override
+    public String toString() {
+        return "Solution{" +
+                "questionId='" + questionId + '\'' +
+                ", titleSlug='" + titleSlug + '\'' +
+                ", typedCode='" + typedCode + '\'' +
+                ", referer='" + referer + '\'' +
+                ", submitUrl='" + submitUrl + '\'' +
+                ", submissionId=" + submissionId +
+                ", checkUrl='" + checkUrl + '\'' +
+                '}';
+    }
+
     public static class SolutionBuilder {
         private String questionId;
         private String titleSlug;
@@ -99,18 +112,5 @@ public class Solution {
         public Solution build() {
             return new Solution(this);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "Solution{" +
-                "questionId='" + questionId + '\'' +
-                ", titleSlug='" + titleSlug + '\'' +
-                ", typedCode='" + typedCode + '\'' +
-                ", referer='" + referer + '\'' +
-                ", submitUrl='" + submitUrl + '\'' +
-                ", submissionId=" + submissionId +
-                ", checkUrl='" + checkUrl + '\'' +
-                '}';
     }
 }

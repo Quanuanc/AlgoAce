@@ -1,15 +1,21 @@
 package dev.cheng.algoace.utils;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
 import dev.cheng.algoace.exception.AlgoAceException;
 import dev.cheng.algoace.model.CommonInfo;
 import dev.cheng.algoace.model.Question;
 import dev.cheng.algoace.model.QuestionCodeSnippet;
 import dev.cheng.algoace.model.Solution;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -83,8 +89,9 @@ public class FileManager {
                 , question.title()).replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug()).replace("{codeBegin}", CommonInfo.CODE_BEGIN).replace("{codeEnd}", CommonInfo.CODE_END).replace("{questionCode}", javaCode);
     }
 
-    public static Solution getSolution(String content) {
-        String secondLine = content.lines().skip(1).findFirst().orElseThrow();
+    public static Solution getSolution(Project project, Editor editor) {
+        String fileText = editor.getDocument().getText();
+        String secondLine = fileText.lines().skip(1).findFirst().orElseThrow();
         Matcher idSlugMatcher = idSlugPattern.matcher(secondLine);
         String questionId, titleSlug, code;
         if (idSlugMatcher.find()) {
@@ -93,14 +100,39 @@ public class FileManager {
         } else {
             throw new AlgoAceException("No questionId and title slug found");
         }
-        Matcher codeMatcher = codePattern.matcher(content);
+        Matcher codeMatcher = codePattern.matcher(fileText);
+
+        // first try to find code between begin and end
+        // if it can not find, then use psiFile to get solution code
         if (codeMatcher.find()) {
             code = codeMatcher.group(1);
         } else {
-            throw new AlgoAceException("No code found");
+            PsiFile psiFile = PsiManager.getInstance(project).findFile(editor.getVirtualFile());
+            PsiClass solutionClass = getSolutionClass(psiFile);
+            code = solutionClass.getText();
         }
         String referer = CommonInfo.LC_API_PROBLEM + titleSlug;
         String submitUrl = CommonInfo.LC_API_PROBLEM + titleSlug + "/submit/";
         return Solution.builder().questionId(questionId).titleSlug(titleSlug).typedCode(code).referer(referer).submitUrl(submitUrl).build();
+    }
+
+    private static @NotNull PsiClass getSolutionClass(PsiFile psiFile) {
+        if (!(psiFile instanceof PsiJavaFile javaFile)) {
+            throw new AlgoAceException("No Java file found");
+        }
+
+        PsiClass[] classes = javaFile.getClasses();
+        PsiClass solutionClass = null;
+
+        for (PsiClass aClass : classes) {
+            if (CommonInfo.SOLUTION_CLASS.equals(aClass.getName())) {
+                solutionClass = aClass;
+                break;
+            }
+        }
+        if (solutionClass == null) {
+            throw new AlgoAceException("No Solution class found");
+        }
+        return solutionClass;
     }
 }

@@ -27,8 +27,7 @@ public class LCSubmitAction extends DumbAwareAction {
             Notifier.warn(CommonInfo.LC_SUBMIT_TITLE, "No file is currently open", project);
             return;
         }
-        String content = editor.getDocument().getText();
-        Solution solution = FileManager.getSolution(content);
+        Solution solution = FileManager.getSolution(project, editor);
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, CommonInfo.LC_SUBMIT_TITLE, false) {
             @Override
