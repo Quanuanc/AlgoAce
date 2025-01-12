@@ -22,9 +22,7 @@ public class CommonInfo {
             /**
              * @link <a href="{questionUrl}">{questionTitle}</a>
              */
-            {codeBegin}
             {questionCode}
-            {codeEnd}
             """;
     public static final String LC_QUESTION_LIST_QUERY = """
             {

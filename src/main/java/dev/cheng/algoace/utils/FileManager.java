@@ -81,12 +81,17 @@ public class FileManager {
     }
 
     private static String constructContent(Question question) {
-        String javaCode =
-                question.codeSnippets().stream().filter(snippet -> "java".equals(snippet.langSlug())).findFirst().map(QuestionCodeSnippet::code).orElseThrow(() -> new AlgoAceException("No Java code snippet found"));
+        String javaCode = question.codeSnippets().stream()
+                .filter(snippet -> "java".equals(snippet.langSlug()))
+                .findFirst().map(QuestionCodeSnippet::code)
+                .orElseThrow(() -> new AlgoAceException("No Java code snippet found"));
         String packageName = CommonInfo.USER_SOURCE_PACKAGE + ".q" + question.questionFrontendId();
-        return CommonInfo.USER_CODE_TEMPLATE.replace("{package}", packageName).replace("{questionId}",
-                question.questionId()).replace("{questionTitleSlug}", question.titleSlug()).replace("{questionTitle}"
-                , question.title()).replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug()).replace("{codeBegin}", CommonInfo.CODE_BEGIN).replace("{codeEnd}", CommonInfo.CODE_END).replace("{questionCode}", javaCode);
+        return CommonInfo.USER_CODE_TEMPLATE.replace("{package}", packageName)
+                .replace("{questionId}", question.questionId())
+                .replace("{questionTitleSlug}", question.titleSlug())
+                .replace("{questionTitle}", question.title())
+                .replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug())
+                .replace("{questionCode}", javaCode);
     }
 
     public static Solution getSolution(Project project, Editor editor) {
