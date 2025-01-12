@@ -13,6 +13,7 @@ import dev.cheng.algoace.model.CommonInfo;
 import dev.cheng.algoace.model.Solution;
 import dev.cheng.algoace.service.LeetCodeService;
 import dev.cheng.algoace.utils.FileManager;
+import dev.cheng.algoace.utils.MiscUtils;
 import dev.cheng.algoace.utils.Notifier;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +28,7 @@ public class LCSubmitAction extends DumbAwareAction {
             Notifier.warn(CommonInfo.LC_SUBMIT_TITLE, "No file is currently open", project);
             return;
         }
+        FileManager.makeSureQuestionIdAndTitleSlug(project, editor);
         Solution solution = FileManager.getSolution(project, editor);
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, CommonInfo.LC_SUBMIT_TITLE, false) {
@@ -40,13 +42,9 @@ public class LCSubmitAction extends DumbAwareAction {
 
                     CheckResult result = LeetCodeService.getInstance().checkSubmission(solution).get();
 
-                    String title = String.format("Status: %s", result.status_msg());
+                    String title = result.status_msg();
                     if (result.status_code() == 10) {
-                        String message = String.format(
-                                "Runtime: %s | Beats: %.2f%%<br>Memory: %s | Beats: %.2f%%",
-                                result.status_runtime(), result.runtime_percentile(),
-                                result.status_memory(), result.memory_percentile()
-                        );
+                        String message = MiscUtils.generateSubmitResultMessage(result);
                         Notifier.runSuccess(title, message, project);
                     } else {
                         Notifier.runFailed(title, null, project);

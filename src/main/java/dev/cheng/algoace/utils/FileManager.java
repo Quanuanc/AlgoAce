@@ -1,6 +1,7 @@
 package dev.cheng.algoace.utils;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -15,6 +16,7 @@ import dev.cheng.algoace.model.CommonInfo;
 import dev.cheng.algoace.model.Question;
 import dev.cheng.algoace.model.QuestionCodeSnippet;
 import dev.cheng.algoace.model.Solution;
+import dev.cheng.algoace.service.LeetCodeService;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -81,17 +83,12 @@ public class FileManager {
     }
 
     private static String constructContent(Question question) {
-        String javaCode = question.codeSnippets().stream()
-                .filter(snippet -> "java".equals(snippet.langSlug()))
-                .findFirst().map(QuestionCodeSnippet::code)
-                .orElseThrow(() -> new AlgoAceException("No Java code snippet found"));
+        String javaCode =
+                question.codeSnippets().stream().filter(snippet -> "java".equals(snippet.langSlug())).findFirst().map(QuestionCodeSnippet::code).orElseThrow(() -> new AlgoAceException("No Java code snippet found"));
         String packageName = CommonInfo.USER_SOURCE_PACKAGE + ".q" + question.questionFrontendId();
-        return CommonInfo.USER_CODE_TEMPLATE.replace("{package}", packageName)
-                .replace("{questionId}", question.questionId())
-                .replace("{questionTitleSlug}", question.titleSlug())
-                .replace("{questionTitle}", question.title())
-                .replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug())
-                .replace("{questionCode}", javaCode);
+        return CommonInfo.USER_CODE_TEMPLATE.replace("{package}", packageName).replace("{questionId}",
+                question.questionId()).replace("{questionTitleSlug}", question.titleSlug()).replace("{questionTitle}"
+                , question.title()).replace("{questionUrl}", CommonInfo.LC_API_PROBLEM + question.titleSlug()).replace("{questionCode}", javaCode);
     }
 
     public static Solution getSolution(Project project, Editor editor) {
@@ -139,5 +136,27 @@ public class FileManager {
             throw new AlgoAceException("No Solution class found");
         }
         return solutionClass;
+    }
+
+    public static void makeSureQuestionIdAndTitleSlug(Project project, Editor editor) {
+        String fileText = editor.getDocument().getText();
+        String packageLine = fileText.lines().findFirst().orElse("");
+        String secondLine = fileText.lines().skip(1).findFirst().orElse("");
+        Matcher idSlugMatcher = idSlugPattern.matcher(secondLine);
+        if (!idSlugMatcher.find()) {
+            try {
+                String questionId = packageLine.substring(packageLine.lastIndexOf('.') + 2, packageLine.length() - 1);
+                String idSlugLineTemplate = "\n// {%s} {%s}";
+
+                Question question = LeetCodeService.getInstance().fetchQuestionById(Integer.parseInt(questionId)).get();
+                String idSlugLine = String.format(idSlugLineTemplate, question.questionId(), question.titleSlug());
+
+                int offset = editor.getDocument().getLineEndOffset(0);
+                WriteCommandAction.runWriteCommandAction(project, () -> editor.getDocument().insertString(offset,
+                        idSlugLine));
+            } catch (Exception e) {
+                throw new AlgoAceException("Failed to fetch question: " + e.getMessage());
+            }
+        }
     }
 }

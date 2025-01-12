@@ -30,4 +30,10 @@ public class CommonInfo {
               "variables": { "categorySlug": "", "limit": 1, "skip": %d, "filters": {} }
             }
             """;
+    public static final String SUBMIT_RESULT_TEMPLATE = """
+            <pre>
+            %s | Beats %.2f%%
+            %s | Beats %.2f%%
+            </pre>
+            """;
 }
